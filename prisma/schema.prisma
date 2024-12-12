@@ -12,11 +12,23 @@ datasource db {
 }
 
 model User {
-  id      Int     @id @default(autoincrement())
-  email   String  @unique
-  name    String?
-  address String?
-  posts   Post[]
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  name     String?
+  address  String?
+  school   String?
+  major    String?
+  course   Course? // @relation(fields: [courseId, name, professor, location], references: [id])
+  posts    Post[]
+}
+
+model Course {
+  id        Int    @id @default(autoincrement()) // Primary key for Course
+  studentId Int 
+  name      String
+  professor String
+  location  String
+  users     User[] @relation(fields: [studentId], references[id]) // Opposite relation field for `User.course`
 }
 
 model Post {
