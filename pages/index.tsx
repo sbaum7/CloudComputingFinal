@@ -1,10 +1,10 @@
 import { Inter } from 'next/font/google'
-import {useEffect, useState} from "react";
-import {ColumnsType} from "antd/es/table";
-import {Button, Form, Input, message, Modal, Select, Space, Table, Tag} from "antd";
+import { useEffect, useState } from "react";
+import { ColumnsType } from "antd/es/table";
+import { Button, Form, Input, message, Modal, Space, Table } from "antd";
 import { faker } from '@faker-js/faker';
-import {User} from ".prisma/client";
-import {Course} from ".prisma/client";
+import { User } from ".prisma/client";
+import { Course } from ".prisma/client";
 const inter = Inter({ subsets: ['latin'] })
 
 const layout = {
@@ -17,16 +17,17 @@ const tailLayout = {
 };
 
 export default function Home() {
-  const [users, setUsers] = useState<User[]>([]); 
+  const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalTwoOpen, setIsModalTwoOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [studentForm] = Form.useForm();
+  const [courseForm] = Form.useForm();
+  const [currentStudent, setCurrentStudent] = useState<User | null>(null);
 
   const onStudentFinish = async (values: any) => {
     console.log(values);
     setIsModalOpen(false);
-    setIsModalTwoOpen(false);
     fetch('/api/create_user', {
       method: 'POST',
       headers: {
@@ -39,38 +40,27 @@ export default function Home() {
         const user = await response.json();
         message.success('Registered student ' + user.name);
         setUsers([...users, user]);
-
-      } else message.error(
-          `Failed to register student:\n ${JSON.stringify(await response.json())}`);
-    }).catch(res=>{message.error(res)})
+      } else {
+        message.error(`Failed to register student:\n ${JSON.stringify(await response.json())}`);
+      }
+    }).catch(res => { message.error(res) })
   };
 
-  // need to finish
-  // const onCourseFinish = async (values: any) => {
-  //   console.log(values);
-  //   setIsModalOpen(false);
-  //   setIsModalTwoOpen(false);
-  //   fetch('/api/add_course', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Accept': 'application/json',
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify(values)
-  //   }).then(async response => {
-  //     if (response.status === 200) {
-  //       const user = await response.json();
-  //       message.success('Added course ' + user.course.name);
-  //       setUsers([...users, user]); // figure out what this does
-
-  //     } else message.error(
-  //         `Failed to add course:\n ${JSON.stringify(await response.json())}`);
-  //   }).catch(res=>{message.error(res)})
-  // };
-
   const onCourseFinish = async (values: any) => {
-    console.log('Submitting course data:', values);
-    setIsModalTwoOpen(false);
+    console.log('Current student:', currentStudent); // Add debug log
+    
+    if (!currentStudent?.id) {
+      message.error('No student selected');
+      return;
+    }
+  
+    const courseData = {
+      name: values.courseName,
+      professor: values.professor,
+      location: values.location
+    };
+  
+    console.log('Sending data:', { userId: currentStudent.id, courseData }); // Debug log
   
     fetch('/api/add_course', {
       method: 'POST',
@@ -78,27 +68,29 @@ export default function Home() {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        userId: currentStudent.id,
+        courseData: courseData
+      }),
     })
-      .then(async (response) => {
-        if (response.status === 200) {
-          const course = await response.json();
-          message.success('Added course ' + course.name);
-          setCourses([...courses, course]); // Update courses state
-        } else {
-          message.error(
-            `Failed to add course:\n ${JSON.stringify(await response.json())}`
-          );
-        }
-      })
-      .catch((res) => {
-        message.error(res);
-      });
+    .then(async (response) => {
+      if (response.status === 200) {
+        const course = await response.json();
+        message.success('Added course ' + courseData.name);
+        setCourses([...courses, course]);
+        setIsModalTwoOpen(false);
+      } else {
+        const error = await response.json();
+        message.error(`Failed to add course: ${error.message}`);
+      }
+    })
+    .catch((error) => {
+      message.error('Error: ' + error.message);
+    });
   };
-  
 
   const onDelete = async (user: any) => {
-    const {id} = user;
+    const { id } = user;
     setIsModalOpen(false);
     setIsModalTwoOpen(false);
     fetch('/api/delete_user', {
@@ -107,40 +99,17 @@ export default function Home() {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({id})
+      body: JSON.stringify({ id })
     }).then(async response => {
       if (response.status === 200) {
         await response.json();
         message.success('Deleted user ' + user.name);
-        setUsers(users.filter(u=> u.id !== id ));
-
-      } else message.error(
-          `Failed to delete user:\n ${user.name}`);
-    }).catch(res=>{message.error(res)})
+        setUsers(users.filter(u => u.id !== id));
+      } else {
+        message.error(`Failed to delete user:\n ${user.name}`);
+      }
+    }).catch(res => { message.error(res) })
   };
-  
-  // need to finish add_course
-  // const onAddcourse = async (user: any) => {
-  //   const {id} = user;
-  //   setIsModalOpen(false);
-  //   setIsModalTwoOpen(true);
-  //   fetch('/api/add_course', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Accept': 'application/json',
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify({id})
-  //   }).then(async response => {
-  //     if (response.status === 200) {
-  //       await response.json();
-  //       message.success('Added course ' + user.course.name);
-  //       setUsers(users.filter(u=> u.id !== id ));
-
-  //     } else message.error(
-  //         `Failed to add course:\n ${user.course.name}`);
-  //   }).catch(res=>{message.error(res)})
-  // };
 
   const columns: ColumnsType<User> = [
     {
@@ -175,40 +144,41 @@ export default function Home() {
       dataIndex: 'major',
       key: 'major',
     },
-  
-    { // need to test
+    {
       title: 'Action',
       key: 'action',
       render: (_, record) => (
-          <Space size="middle">
-            <a onClick={()=>onDelete(record)}>Delete Student</a>
-            <a onClick={()=>showCourseModal()}>Add course</a>
-          </Space>
+        <Space size="middle">
+          <a onClick={() => onDelete(record)}>Delete Student</a>
+          <a onClick={() => {
+            console.log('Setting current student:', record); // Debug log
+            setCurrentStudent(record);
+            showCourseModal();
+          }}>Add course</a>
+        </Space>
       ),
     },
   ];
 
-  // Define a separate columns structure for the class table
-const courseColumns: ColumnsType<any> = [
-  {
-    title: 'Course Name',
-    dataIndex: 'courseName',
-    key: 'courseName',
-  },
-  {
-    title: 'Professor',
-    dataIndex: 'professor',
-    key: 'professor',
-  },
-  {
-    title: 'Class Location',
-    dataIndex: 'location',
-    key: 'location',
-  },
-];
+  const courseColumns: ColumnsType<any> = [
+    {
+      title: 'Course Name',
+      dataIndex: 'name', // Changed from courseName to name to match API response
+      key: 'name',
+    },
+    {
+      title: 'Professor',
+      dataIndex: 'professor',
+      key: 'professor',
+    },
+    {
+      title: 'Class Location',
+      dataIndex: 'location',
+      key: 'location',
+    },
+  ];
 
-
-  const onReset = () => {
+  const onReset = (form: any) => {
     form.resetFields();
   };
 
@@ -218,91 +188,98 @@ const courseColumns: ColumnsType<any> = [
     const email = faker.internet.email({ firstName, lastName });
     const street = faker.location.streetAddress();
     const city = faker.location.city();
-    const state  = faker.location.state({ abbreviated: true });
+    const state = faker.location.state({ abbreviated: true });
     const zip = faker.location.zipCode()
 
-    form.setFieldsValue({
+    studentForm.setFieldsValue({
       name: `${firstName} ${lastName}`,
       email: email,
-      address:
-          `${street}, ${city}, ${state}, US, ${zip}`
+      address: `${street}, ${city}, ${state}, US, ${zip}`
     });
   };
 
-  const oncourseFill = () => {
+  const onCourseFill = () => {
     const courseNameS = ['Intro to Cloud Computing', 'Computer Architecture',
-                        'Intro to Software Engr', 'Database Management Systems'];
+      'Intro to Software Engr', 'Database Management Systems'];
     const courseName = faker.helpers.arrayElement(courseNameS);
     const professorS = ['Tiffany Zhang', 'Kwangsung Oh', 'Eric Lundy', 'Praval Sharma'];
     const professor = faker.helpers.arrayElement(professorS);
     const locationS = ['PKI', 'Totally Online'];
     const location = faker.helpers.arrayElement(locationS);
 
-    form.setFieldsValue({
-      name: courseName,
+    courseForm.setFieldsValue({
+      courseId: faker.datatype.uuid(),
+      courseName: courseName,
       professor: professor,
       location: location
     });
   };
+
   const showStudentModal = () => {
     setIsModalOpen(true);
-    form.resetFields();
+    studentForm.resetFields();
   };
+
   const showCourseModal = () => {
     setIsModalTwoOpen(true);
-    form.resetFields();
+    courseForm.resetFields();
   };
+
   const studentCancel = () => {
     setIsModalOpen(false);
-    form.resetFields();
+    studentForm.resetFields();
   };
+
   const courseCancel = () => {
     setIsModalTwoOpen(false);
-    form.resetFields();
+    courseForm.resetFields();
   };
-  useEffect(()=>{
-    fetch('api/all_user', {method: "GET"})
+
+  useEffect(() => {
+    fetch('api/all_user', { method: "GET" })
+      .then(res => {
+        res.json().then(
+          (json => { setUsers(json) })
+        )
+      }),
+      fetch('api/all_course', { method: "GET" })
         .then(res => {
           res.json().then(
-              (json=> {setUsers(json)})
-          )
-        }),
-    fetch('api/all_course', {method: "GET"})
-        .then(res => {
-          res.json().then(
-              (json=> {setCourses(json)})
+            (json => { setCourses(json) })
           )
         })
   }, []);
-  
+
   if (!users) return "Give me a second";
 
-  return  <>
-    <Button type="primary" onClick={showStudentModal}>
+  return <>
+	<div className="button-container">
+	<Button type="primary" className="black-button" onClick={showStudentModal}>
       Add User
-    </Button>
+	</Button>
+    </div>
     <Modal title="Student Registration Form" onCancel={studentCancel}
-           open={isModalOpen} footer={null}  width={800}>
+      open={isModalOpen} footer={null} width={800}>
       <Form
-          {...layout}
-          form={form}
-          name="control-hooks"
-          onFinish={onStudentFinish}
-          style={{ maxWidth: 600 }}
+        {...layout}
+        form={studentForm}
+        name="student-form"
+        onFinish={onStudentFinish}
+        style={{ maxWidth: 600 }}
       >
         <Form.Item name="name" label="Name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="email" label="email" rules={[{ required: true }]}>
+        <Form.Item name="email" label="Email" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="address" label="address" rules={[{ required: true }]}>
+        <Form.Item name="address" label="Address" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="school" label="school" rules={[{ required: true }]}>
+        <Form.Item name="school" label="School" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
-        <Form.Item name="major" label="major" rules={[{ required: true }]}>
+        <Form.Item name="major" label="Major" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
 
@@ -310,26 +287,27 @@ const courseColumns: ColumnsType<any> = [
           <Button type="primary" htmlType="submit">
             Submit
           </Button>
-          <Button htmlType="button" onClick={onReset}>
+          <Button htmlType="button" onClick={() => onReset(studentForm)}>
             Reset
           </Button>
-          <Button  htmlType="button" onClick={onStudentFill}>
+          <Button htmlType="button" onClick={onStudentFill}>
             Fill form
           </Button>
-          <Button  htmlType="button" onClick={studentCancel}>
+          <Button htmlType="button" onClick={studentCancel}>
             Cancel
           </Button>
         </Form.Item>
       </Form>
     </Modal>
-    <Modal title="course Registration Form" onCancel={studentCancel}
-           open={isModalTwoOpen} footer={null}  width={800}>
+
+    <Modal title="Course Registration Form" onCancel={courseCancel}
+      open={isModalTwoOpen} footer={null} width={800}>
       <Form
-          {...layout}
-          form={form}
-          name="control-hooks"
-          onFinish={onCourseFinish}
-          style={{ maxWidth: 600 }}
+        {...layout}
+        form={courseForm}
+        name="course-form"
+        onFinish={onCourseFinish}
+        style={{ maxWidth: 600 }}
       >
         <Form.Item name="courseId" label="Course ID" rules={[{ required: true }]}>
           <Input />
@@ -348,30 +326,29 @@ const courseColumns: ColumnsType<any> = [
           <Button type="primary" htmlType="submit">
             Submit
           </Button>
-          <Button htmlType="button" onClick={onReset}>
+          <Button htmlType="button" onClick={() => onReset(courseForm)}>
             Reset
           </Button>
-          <Button  htmlType="button" onClick={oncourseFill}>
+          <Button htmlType="button" onClick={onCourseFill}>
             Fill form
           </Button>
-          <Button  htmlType="button" onClick={courseCancel}>
+          <Button htmlType="button" onClick={courseCancel}>
             Cancel
           </Button>
         </Form.Item>
       </Form>
     </Modal>
-    {/*<p>{JSON.stringify(users)}</p>*/}
-    <Table columns={columns} dataSource={users} />;
-    <Table columns={courseColumns} dataSource={users.map(user => ({
-    key: user.id, // Required for React table rendering
-    courseId: user.courseId,
-    courseName: user.course?.name, // Spreads the course data (name, professor, location) into the row
-    professor: user.course?.professor, // Professor
-    location: user.course?.location, // Class Location
-  }))} // Use the user's class data here
-  pagination={false} // Optional: Disable pagination for the class table
-/>
+
+    <Table columns={columns} dataSource={users} />
+    <Table 
+      columns={courseColumns} 
+      dataSource={courses.map(course => ({
+        key: course.id,
+        name: course.name,
+        professor: course.professor,
+        location: course.location
+      }))} 
+      pagination={false} 
+    />
   </>;
-
-
 }
