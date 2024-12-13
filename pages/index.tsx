@@ -255,7 +255,7 @@ export default function Home() {
   return <>
 	<div className="button-container">
 	<Button type="primary" className="black-button" onClick={showStudentModal}>
-      Add User
+      Register Student
 	</Button>
     </div>
     <Modal title="Student Registration Form" onCancel={studentCancel}
