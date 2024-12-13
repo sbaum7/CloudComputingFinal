@@ -18,17 +18,17 @@ model User {
   address  String?
   school   String?
   major    String?
-  course   Course? // @relation(fields: [courseId, name, professor, location], references: [id])
+  course   Course? @relation(fields: [courseId], references: [id]) // Correct relation setup
+  courseId Int? // Foreign key to Course
   posts    Post[]
 }
 
 model Course {
   id        Int    @id @default(autoincrement()) // Primary key for Course
-  studentId Int 
   name      String
   professor String
   location  String
-  users     User[] @relation(fields: [studentId], references[id]) // Opposite relation field for `User.course`
+  users     User[] // Back relation from Course to User
 }
 
 model Post {
