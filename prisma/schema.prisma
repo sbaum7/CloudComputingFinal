@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = "mysql://admin:bwlp1770@db1final.c3aie40s8pse.us-east-1.rds.amazonaws.com:3306/demodb1"
   //   mysql://USER:PASSWORD@HOST:PORT/DATABASE
 }
 
