@@ -1,0 +1,229 @@
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #da0000;
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+  }
+  
+  /* Layout Wrapper */
+  .container {
+    width: 80%;
+    max-width: 1200px;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+  }
+  
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Buttons */
+  /* Buttons */
+  /* Center the button horizontally */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px; /* Adjust this to control space from the top of the page */
+    margin-bottom: 30px; /* Adjust this to control space between the button and the tables */
+  }
+  
+  /* Button Styling */
+  .black-button {
+    background-color: black !important;
+    color: white !important;
+    border: none;
+    cursor: pointer;
+    padding: 12px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    width: 220px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .black-button:hover {
+    background-color: #333 !important;
+    transform: translateY(-2px);
+  }
+  
+  
+  
+  button {
+    transition: background-color 0.3s ease;
+  }
+  
+  button:focus {
+    outline: none;
+  }
+  
+  /* Modal Styling */
+  .ant-modal-content {
+    border-radius: 10px;
+  }
+  
+  .ant-modal-header {
+    background-color: #f0f2f5;
+    border-bottom: 2px solid #e8e8e8;
+  }
+  
+  .ant-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 2px solid #e8e8e8;
+  }
+  
+  .ant-modal-close {
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* Form Styling */
+  .ant-form-item-label {
+    font-size: 1rem;
+    color: #666;
+  }
+  
+  .ant-input {
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 100%;
+    margin-bottom: 15px;
+    transition: border-color 0.3s;
+  }
+  
+  .ant-input:focus {
+    border-color: #2d87f0;
+  }
+  
+  /* Table Styling */
+  /* Other global styles you may already have */
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px; /* Increase font size for better readability */
+  }
+  
+  th, td {
+    padding: 16px 20px; /* Increased padding for more space */
+    border: 1px solid #ddd;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  tr:hover {
+    background-color: #eaeaea;
+  }
+  
+  /* Optional: Style the header of the table with more prominent color */
+  th {
+    background-color: #1e1e1e;
+    color: white;
+  }
+  
+  .ant-table {
+    margin-top: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .ant-table-thead > tr > th {
+    background-color: #2d87f0;
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .ant-table-tbody > tr > td {
+    background-color: #f9f9f9;
+    padding: 12px;
+    font-size: 1rem;
+  }
+  
+  .ant-table-row:hover {
+    background-color: #e1e1e1;
+  }
+  
+  /* Table Button */
+  .ant-btn {
+    border-radius: 25px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    background-color: black !important;
+    color: white !important;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .ant-btn:hover {
+    background-color: #333 !important;
+    transform: translateY(-2px);
+  }
+  
+  .ant-btn:focus {
+    outline: none;
+  }
+  
+  /* Responsive Styling */
+  @media (max-width: 768px) {
+    .container {
+      width: 95%;
+      padding: 10px;
+    }
+  
+    h1 {
+      font-size: 1.5rem;
+    }
+  
+    .black-button {
+      width: 100%;
+      font-size: 1.1rem;
+    }
+  
+    .ant-input {
+      font-size: 0.9rem;
+    }
+  
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      font-size: 0.9rem;
+    }
+  
+    .ant-btn {
+      font-size: 0.9rem;
+    }
+  }
+  
