@@ -4,6 +4,7 @@ import {ColumnsType} from "antd/es/table";
 import {Button, Form, Input, message, Modal, Select, Space, Table, Tag} from "antd";
 import { faker } from '@faker-js/faker';
 import {User} from ".prisma/client";
+import {Course} from ".prisma/client";
 const inter = Inter({ subsets: ['latin'] })
 
 const layout = {
@@ -17,7 +18,7 @@ const tailLayout = {
 
 export default function Home() {
   const [users, setUsers] = useState<User[]>([]); 
-  const [courses, setCourses] = useState<User[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalTwoOpen, setIsModalTwoOpen] = useState(false);
   const [form] = Form.useForm();
@@ -45,27 +46,56 @@ export default function Home() {
   };
 
   // need to finish
+  // const onCourseFinish = async (values: any) => {
+  //   console.log(values);
+  //   setIsModalOpen(false);
+  //   setIsModalTwoOpen(false);
+  //   fetch('/api/add_course', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify(values)
+  //   }).then(async response => {
+  //     if (response.status === 200) {
+  //       const user = await response.json();
+  //       message.success('Added course ' + user.course.name);
+  //       setUsers([...users, user]); // figure out what this does
+
+  //     } else message.error(
+  //         `Failed to add course:\n ${JSON.stringify(await response.json())}`);
+  //   }).catch(res=>{message.error(res)})
+  // };
+
   const onCourseFinish = async (values: any) => {
-    console.log(values);
-    setIsModalOpen(false);
+    console.log('Submitting course data:', values);
     setIsModalTwoOpen(false);
+  
     fetch('/api/add_course', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(values)
-    }).then(async response => {
-      if (response.status === 200) {
-        const user = await response.json();
-        message.success('Added course ' + user.course.name);
-        setUsers([...users, user]); // figure out what this does
-
-      } else message.error(
-          `Failed to add course:\n ${JSON.stringify(await response.json())}`);
-    }).catch(res=>{message.error(res)})
+      body: JSON.stringify(values),
+    })
+      .then(async (response) => {
+        if (response.status === 200) {
+          const course = await response.json();
+          message.success('Added course ' + course.name);
+          setCourses([...courses, course]); // Update courses state
+        } else {
+          message.error(
+            `Failed to add course:\n ${JSON.stringify(await response.json())}`
+          );
+        }
+      })
+      .catch((res) => {
+        message.error(res);
+      });
   };
+  
 
   const onDelete = async (user: any) => {
     const {id} = user;
@@ -152,7 +182,7 @@ export default function Home() {
       render: (_, record) => (
           <Space size="middle">
             <a onClick={()=>onDelete(record)}>Delete Student</a>
-            <a onClick={()=>showcourseModal()}>Add course</a>
+            <a onClick={()=>showCourseModal()}>Add course</a>
           </Space>
       ),
     },
@@ -160,11 +190,6 @@ export default function Home() {
 
   // Define a separate columns structure for the class table
 const courseColumns: ColumnsType<any> = [
-  {
-    title: 'Student Name',
-    dataIndex: 'studentName',
-    key: 'studentName',
-  },
   {
     title: 'Course Name',
     dataIndex: 'courseName',
@@ -214,7 +239,7 @@ const courseColumns: ColumnsType<any> = [
     const location = faker.helpers.arrayElement(locationS);
 
     form.setFieldsValue({
-      name: `${courseName}`,
+      name: courseName,
       professor: professor,
       location: location
     });
@@ -223,8 +248,8 @@ const courseColumns: ColumnsType<any> = [
     setIsModalOpen(true);
     form.resetFields();
   };
-  const showcourseModal = () => {
-    setIsModalOpen(true);
+  const showCourseModal = () => {
+    setIsModalTwoOpen(true);
     form.resetFields();
   };
   const studentCancel = () => {
@@ -241,9 +266,15 @@ const courseColumns: ColumnsType<any> = [
           res.json().then(
               (json=> {setUsers(json)})
           )
+        }),
+    fetch('api/all_course', {method: "GET"})
+        .then(res => {
+          res.json().then(
+              (json=> {setCourses(json)})
+          )
         })
   }, []);
-
+  
   if (!users) return "Give me a second";
 
   return  <>
@@ -300,7 +331,10 @@ const courseColumns: ColumnsType<any> = [
           onFinish={onCourseFinish}
           style={{ maxWidth: 600 }}
       >
-        <Form.Item name="courseName" label="course Name" rules={[{ required: true }]}>
+        <Form.Item name="courseId" label="Course ID" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item name="courseName" label="Course Name" rules={[{ required: true }]}>
           <Input />
         </Form.Item>
         <Form.Item name="professor" label="Professor" rules={[{ required: true }]}>
@@ -330,7 +364,7 @@ const courseColumns: ColumnsType<any> = [
     <Table columns={columns} dataSource={users} />;
     <Table columns={courseColumns} dataSource={users.map(user => ({
     key: user.id, // Required for React table rendering
-    studentName: user.name,
+    courseId: user.courseId,
     courseName: user.course?.name, // Spreads the course data (name, professor, location) into the row
     professor: user.course?.professor, // Professor
     location: user.course?.location, // Class Location
